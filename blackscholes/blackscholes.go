@@ -13,16 +13,18 @@ type BS struct {
 	Volatility           float64
 	TimeToExpiration     float64
 	Norm                 *gaussian.Gaussian
+	Type                 string
 }
 
-func NewBlackScholes(strikePrice float64, underlyingPrice float64, riskFreeInterestRate float64, volatility float64, timeToExpiration float64) BS {
-	bs := BS{
+func NewBlackScholes(strikePrice float64, underlyingPrice float64, riskFreeInterestRate float64, volatility float64, timeToExpiration float64, optType string) *BS {
+	bs := &BS{
 		strikePrice,
 		underlyingPrice,
 		riskFreeInterestRate,
 		volatility,
 		float64(timeToExpiration / 365),
 		gaussian.NewGaussian(0, 1),
+		optType,
 	}
 
 	return bs
@@ -57,9 +59,23 @@ func (bs *BS) D2() float64 {
 }
 
 func (bs *BS) Delta() float64 {
-	return bs.Norm.Cdf(bs.D1())
+	delta := bs.Norm.Cdf(bs.D1())
+	if bs.Type == "CALL" {
+		return delta
+	}
+
+	return delta - 1.0
 }
 
-func (bs *BS) TheoreticalPrice() {
+func (bs *BS) ImpliedVolatility() float64 {
+	estimate := (2 * math.Pi / bs.TimeToExpiration) * (bs.TheoreticalPrice() / bs.UnderlyingPrice)
 
+	return estimate
+}
+
+func (bs *BS) TheoreticalPrice() float64 {
+	normD1 := bs.Norm.Cdf(bs.D1())
+	normD2 := bs.Norm.Cdf(bs.D2())
+
+	return bs.UnderlyingPrice*normD1 - bs.StrikePrice*math.Pow(math.E, -bs.RiskFreeInterestRate*bs.TimeToExpiration)*normD2
 }
