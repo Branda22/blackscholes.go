@@ -7,11 +7,22 @@ import (
 )
 
 func main() {
-	bs := blackscholes.NewBlackScholes(50.0, 45.0, .1, .3, 60, "PUT")
-	fmt.Println(bs)
-	fmt.Println("d1", bs.D1())
-	fmt.Println("d2", bs.D2())
-	fmt.Println("delta", bs.Delta())
-	fmt.Println("IV", bs.ImpliedVolatility())
-	fmt.Println("Theo price", bs.TheoreticalPrice())
+	option := &blackscholes.Option{
+		StrikePrice:      955,
+		TimeToExpiration: 48,
+		Type:             "CALL",
+	}
+
+	underlying := &blackscholes.Underlying{
+		Symbol:     "GOOG",
+		Price:      959.11,
+		Volatility: .13,
+	}
+
+	bs := blackscholes.NewBlackScholes(option, underlying, .0102)
+
+	fmt.Println("delta", bs.Delta)
+	fmt.Println("IV", bs.ImpliedVolatility)
+	fmt.Println("Theo price", bs.TheoPrice)
+	fmt.Println("Theta", bs.Theta)
 }
